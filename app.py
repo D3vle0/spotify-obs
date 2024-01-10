@@ -21,7 +21,7 @@ def generate_random_string(length):
 @app.route('/')
 def main():
     if request.cookies.get('token'):
-        try:
+        # try:
             print(f'access: {request.cookies.get("token")}')
             print(f'refresh: {request.cookies.get("refresh_token")}')
             headers = {
@@ -29,11 +29,29 @@ def main():
             }
 
             response = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers)
-            # if response.status_code == 401 and response.json()['error']['message'] == 'The access token expired':
+            if response.status_code == 401 and response.json()['error']['message'] == 'The access token expired':
+                refresh_token = request.cookies.get('refresh_token')
+                authOptions = {
+                    'url': 'https://accounts.spotify.com/api/token',
+                    'headers': {
+                        'content-type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+                    },
+                    'data': {
+                        'grant_type': 'refresh_token',
+                        'refresh_token': refresh_token
+                    }
+                }
 
-                
+                response = requests.post(**authOptions)
+                print(response.json())
+                if response.status_code == 200:
+                    resp = make_response(redirect('/'))
+                    resp.set_cookie('token', response.json()['access_token'])
+                    return resp
+                else:
+                    return response.content, response.status_code
             response = response.json()
-            # return response.json()
             title = response['item']['name']
             artist = ''
             for i in range(len(response['item']['artists'])):
@@ -41,7 +59,7 @@ def main():
             artist = artist[:-2]
             album_art = response['item']['album']['images'][0]['url']
             return render_template('index.html', title=title, artist=artist, album_art=album_art)
-        except:
+        # except:
             return 'check token or play music'
     return '<h1>spotify</h1><a href="/login">login</a>'
 

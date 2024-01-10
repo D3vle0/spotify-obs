@@ -138,7 +138,7 @@
         <div class="div-2">
             <div class="div-3">
                 <div class="column">
-                    <img loading="lazy" srcset="{{album_art}}" class="img" />
+                    <img loading="lazy" srcset="{{album_art}}" class="img" id="img"/>
                 </div>
                 <div class="column-2">
                     <span class="span">
@@ -176,6 +176,7 @@
 </script>
 <script>
     const interval = setInterval(function () {
+        console.log(Cookies.get('token'))
         $.ajax({
             url: 'https://api.spotify.com/v1/me/player/currently-playing',
             crossDomain: true,
@@ -183,9 +184,18 @@
                 'Authorization': `Bearer ${Cookies.get('token')}`
             }
         }).done(function (response) {
-            console.log(response);
+            console.log(response)
+            let res = response;
+            document.getElementById('title').innerText = res['item']['name']
+            let title = res['item']['name'];
+            let artist = '';
+            for (let i = 0; i < res['item']['artists'].length; i++)
+                artist += `${res['item']['artists'][i]['name']}, `;
+            artist = artist.slice(0, -2);
+            document.getElementById('artist').innerText = artist;
+            document.getElementById('img').srcset = res['item']['album']['images'][0]['url'];
         });
-    }, 10000);
+    }, 10000); // 이전 데이터와 비교 시 곡이 달라지지 않았으면 marquee 유지해야함
 </script>
 
 </html>
