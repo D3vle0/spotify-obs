@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, session
+from flask import Flask, request, redirect, session, render_template, make_response
 from urllib.parse import urlencode
 import random
 import string
@@ -20,14 +20,27 @@ def generate_random_string(length):
 
 @app.route('/')
 def main():
-    if "token" in session:
+    if request.cookies.get('token'):
         try:
+            print(f'access: {request.cookies.get("token")}')
+            print(f'refresh: {request.cookies.get("refresh_token")}')
             headers = {
-                'Authorization': f'Bearer {session["token"]}',
+                'Authorization': f'Bearer {request.cookies.get("token")}',
             }
 
             response = requests.get('https://api.spotify.com/v1/me/player/currently-playing', headers=headers)
-            return response.json()
+            # if response.status_code == 401 and response.json()['error']['message'] == 'The access token expired':
+
+                
+            response = response.json()
+            # return response.json()
+            title = response['item']['name']
+            artist = ''
+            for i in range(len(response['item']['artists'])):
+                artist += f"{response['item']['artists'][i]['name']}, "
+            artist = artist[:-2]
+            album_art = response['item']['album']['images'][0]['url']
+            return render_template('index.html', title=title, artist=artist, album_art=album_art)
         except:
             return 'check token or play music'
     return '<h1>spotify</h1><a href="/login">login</a>'
@@ -35,8 +48,7 @@ def main():
 @app.route('/login')
 def authorize():
     state = generate_random_string(16)
-    scope = 'user-read-private user-read-email user-read-currently-playing' # replace with your client id
-      # replace with your redirect uri
+    scope = 'user-read-private user-read-email user-read-currently-playing'
 
     params = {
         'response_type': 'code',
@@ -70,14 +82,17 @@ def callback():
             }
         }
         response = requests.post(**auth_options)
-        # return redirect('/')
-        session['token'] = response.json()['access_token']
-        return redirect('/')
+        resp = make_response(redirect('/'))
+        resp.set_cookie('token', response.json()['access_token'])
+        resp.set_cookie('refresh_token', response.json()['refresh_token'])
+        return resp
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect('/')
+    resp = make_response(redirect('/'))
+    resp.set_cookie('token', '', expires=0)
+    resp.set_cookie('refresh_token', '', expires=0)
+    return resp
 
 if __name__ == '__main__':
     app.run(port=8888, debug=1)

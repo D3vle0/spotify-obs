@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currently playing song</title>
+</head>
+<style>
+    .div {
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        padding: 0 60px 50px 0;
+    }
+
+    @media (max-width: 400px) {
+        .div {
+            padding-right: 20px;
+        }
+    }
+
+    .div-2 {
+        border-radius: 20px;
+        background-color: #d9d9d9;
+        margin-bottom: 536px;
+        width: 400px;
+        max-width: 100%;
+        padding: 10px 0 10px 10px;
+    }
+
+    @media (max-width: 400px) {
+        .div-2 {
+            padding-left: 20px;
+            margin-bottom: 40px;
+        }
+    }
+
+    .div-3 {
+        gap: 20px;
+        display: flex;
+    }
+
+    @media (max-width: 400px) {
+        .div-3 {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0px;
+        }
+    }
+
+    .column {
+        display: flex;
+        flex-direction: column;
+        line-height: normal;
+        width: 19%;
+        margin-left: 0px;
+    }
+
+    @media (max-width: 400px) {
+        .column {
+            width: 100%;
+        }
+    }
+
+    .img {
+        aspect-ratio: 1;
+        object-fit: contain;
+        object-position: center;
+        width: 80px;
+        overflow: hidden;
+        max-width: 100%;
+        border-radius: 20px;
+    }
+
+    @media (max-width: 400px) {
+        .img {
+            margin-top: 35px;
+        }
+    }
+
+    .column-2 {
+        display: flex;
+        flex-direction: column;
+        line-height: normal;
+        width: 280px;
+        margin-left: 0px;
+        overflow-x: hidden;
+    }
+
+    @media (max-width: 400px) {
+        .column-2 {
+            width: 100%;
+        }
+    }
+
+    .span {
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        margin: auto 0;
+        white-space: nowrap;
+        will-change: transform;
+    }
+
+    @media (max-width: 400px) {
+        .span {
+            margin-top: 40px;
+        }
+    }
+
+    .div-4 {
+        color: #000;
+        white-space: nowrap;
+        font: 600 24px Inter, sans-serif;
+    }
+
+    @media (max-width: 400px) {
+        .div-4 {
+            white-space: initial;
+        }
+    }
+
+    .div-5 {
+        color: #000;
+        margin-top: 11px;
+        font: 500 20px Inter, sans-serif;
+    }
+
+    .marquee {
+        overflow: hidden;
+    }
+</style>
+
+<body>
+    <div class="div">
+        <div class="div-2">
+            <div class="div-3">
+                <div class="column">
+                    <img loading="lazy" srcset="{{album_art}}" class="img" />
+                </div>
+                <div class="column-2">
+                    <span class="span">
+                        <div class="div-4 marquee" id="title">{{title}}</div>
+                        <div class="div-5 marquee2" id="artist">{{artist}}</div>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/jquery.marquee@1.5.0/jquery.marquee.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+<script>
+    if (document.getElementById('title').innerText.length > 15) {
+        $('.marquee').marquee({
+            duration: 8000,
+            gap: 30,
+            delayBeforeStart: 0,
+            direction: 'left',
+            duplicated: true
+        });
+    }
+    if (document.getElementById('artist').innerText.length > 20) {
+        $('.marquee2').marquee({
+            duration: 8000,
+            gap: 30,
+            delayBeforeStart: 0,
+            direction: 'left',
+            duplicated: true
+        });
+    }
+</script>
+<script>
+    const interval = setInterval(function () {
+        $.ajax({
+            url: 'https://api.spotify.com/v1/me/player/currently-playing',
+            crossDomain: true,
+            headers: {
+                'Authorization': `Bearer ${Cookies.get('token')}`
+            }
+        }).done(function (response) {
+            console.log(response);
+        });
+    }, 10000);
+</script>
+
+</html>
