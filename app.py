@@ -13,7 +13,7 @@ app.secret_key = os.urandom(32)
 
 client_id=os.getenv('CLIENT_ID')
 client_secret=os.getenv('CLIENT_SECRET')
-redirect_uri = 'http://localhost:8888/callback'
+redirect_uri = f'http://{os.getenv("HOST")}:{os.getenv("PORT")}/callback'
 
 def generate_random_string(length):
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
@@ -114,4 +114,4 @@ def logout():
     return resp
 
 if __name__ == '__main__':
-    app.run(port=8888, debug=1)
+    app.run(port=8888, debug=0)
