@@ -21,7 +21,7 @@ def generate_random_string(length):
 @app.route('/')
 def main():
     if request.cookies.get('token'):
-        try:
+        # try:
             print(f'access: {request.cookies.get("token")}')
             print(f'refresh: {request.cookies.get("refresh_token")}')
             headers = {
@@ -59,7 +59,7 @@ def main():
             artist = artist[:-2]
             album_art = response['item']['album']['images'][0]['url']
             return render_template('index.html', title=title, artist=artist, album_art=album_art)
-        except:
+        # except:
             return 'check token or play music'
     return '<h1>spotify</h1><a href="/login">login</a>'
 
@@ -103,6 +103,7 @@ def callback():
         resp = make_response(redirect('/'))
         resp.set_cookie('token', response.json()['access_token'])
         resp.set_cookie('refresh_token', response.json()['refresh_token'])
+        resp.set_cookie('client_id', client_id)
         return resp
 
 @app.route('/logout')

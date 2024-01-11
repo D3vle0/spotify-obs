@@ -189,6 +189,7 @@
         console.log(ctx.measureText(txt).width)
         return ctx.measureText(txt).width;
     }
+
     var current_title = `{{title}}`;
     var current_artist = `{{artist}}`;
     if (getTextWidth(current_title, 'title') > 280)
@@ -196,7 +197,6 @@
     if (getTextWidth(current_artist, 'artist') > 280)
         document.getElementById('artist').innerHTML = `<marquee>${current_artist}</marquee>`
     const interval = setInterval(function () {
-        console.log(Cookies.get('token'))
         getTextWidth(current_title, 'title');
         getTextWidth(current_artist, 'artist');
         $.ajax({
@@ -204,10 +204,16 @@
             crossDomain: true,
             headers: {
                 'Authorization': `Bearer ${Cookies.get('token')}`
+            },
+            statusCode: {
+                401: function () {
+                    window.location.reload(); //refresh token
+                }
             }
-        }).done(function (response) {
+        }).done(function (response, textStatus, xhr) {
             console.log(response)
             let res = response;
+            console.log(xhr.status)
             console.log(document.getElementById('title').innerText)
             console.log(res['item']['name'])
             if (current_title !== res['item']['name']) { // 노래 바뀜
@@ -228,8 +234,7 @@
             }
             document.getElementById('img').srcset = res['item']['album']['images'][0]['url'];
         });
-    }, 10000); // 이전 데이터와 비교 시 곡이 달라지지 않았으면 marquee 유지해야함
-    // dom js에서 token refresh 해야함
+    }, 10000);
 </script>
 
 </html>
