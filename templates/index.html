@@ -128,7 +128,8 @@
         font: 500 20px Inter, sans-serif;
     }
 
-    .marquee {
+    .marquee,
+    .marquee2 {
         overflow: hidden;
     }
 </style>
@@ -138,7 +139,7 @@
         <div class="div-2">
             <div class="div-3">
                 <div class="column">
-                    <img loading="lazy" srcset="{{album_art}}" class="img" id="img"/>
+                    <img loading="lazy" srcset="{{album_art}}" class="img" id="img" />
                 </div>
                 <div class="column-2">
                     <span class="span">
@@ -148,6 +149,7 @@
                 </div>
             </div>
         </div>
+        <canvas id="myCanvas" width="300" height="150" style="border:1px solid grey;display: none"></canvas>
     </div>
 
 </body>
@@ -155,28 +157,48 @@
 <script src="//cdn.jsdelivr.net/npm/jquery.marquee@1.5.0/jquery.marquee.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
 <script>
-    if (document.getElementById('title').innerText.length > 15) {
-        $('.marquee').marquee({
-            duration: 8000,
-            gap: 30,
-            delayBeforeStart: 0,
-            direction: 'left',
-            duplicated: true
-        });
-    }
-    if (document.getElementById('artist').innerText.length > 20) {
-        $('.marquee2').marquee({
-            duration: 8000,
-            gap: 30,
-            delayBeforeStart: 0,
-            direction: 'left',
-            duplicated: true
-        });
-    }
+    // if (document.getElementById('title').innerText.length > 15) {
+    //     $('.marquee').marquee({
+    //         duration: 8000,
+    //         gap: 30,
+    //         delayBeforeStart: 0,
+    //         direction: 'left',
+    //         duplicated: true
+    //     });
+    // }
+    // if (document.getElementById('artist').innerText.length > 20) {
+    //     $('.marquee2').marquee({
+    //         duration: 8000,
+    //         gap: 30,
+    //         delayBeforeStart: 0,
+    //         direction: 'left',
+    //         duplicated: true
+    //     });
+    // }
 </script>
-<script>
+<script> // 텍스트 width에 따라서 marquee 여부 결정
+    function getTextWidth(txt, type) {
+        const c = document.getElementById("myCanvas");
+        const ctx = c.getContext("2d");
+        if (type === 'title')
+            ctx.font = "600 24px Inter, sans-serif";
+        else if (type === 'artist')
+            ctx.font = "500 20px Inter, sans-serif";
+        ctx.fillText("width:" + ctx.measureText(txt).width, 10, 50);
+        ctx.fillText(txt, 10, 100);
+        console.log(ctx.measureText(txt).width)
+        return ctx.measureText(txt).width;
+    }
+    var current_title = `{{title}}`;
+    var current_artist = `{{artist}}`;
+    if (getTextWidth(current_title, 'title') > 280)
+        document.getElementById('title').innerHTML = `<marquee>${current_title}</marquee>`
+    if (getTextWidth(current_artist, 'artist') > 280)
+        document.getElementById('artist').innerHTML = `<marquee>${current_artist}</marquee>`
     const interval = setInterval(function () {
         console.log(Cookies.get('token'))
+        getTextWidth(current_title, 'title');
+        getTextWidth(current_artist, 'artist');
         $.ajax({
             url: 'https://api.spotify.com/v1/me/player/currently-playing',
             crossDomain: true,
@@ -186,16 +208,28 @@
         }).done(function (response) {
             console.log(response)
             let res = response;
-            document.getElementById('title').innerText = res['item']['name']
-            let title = res['item']['name'];
+            console.log(document.getElementById('title').innerText)
+            console.log(res['item']['name'])
+            if (current_title !== res['item']['name']) { // 노래 바뀜
+                document.getElementById('title').innerText = res['item']['name'];
+                current_title = res['item']['name'];
+                if (getTextWidth(current_title, 'title') > 280) // 노래가 바뀌고 새 marquee 효과
+                    document.getElementById('title').innerHTML = `<marquee>${current_title}</marquee>`
+            }
             let artist = '';
             for (let i = 0; i < res['item']['artists'].length; i++)
                 artist += `${res['item']['artists'][i]['name']}, `;
             artist = artist.slice(0, -2);
-            document.getElementById('artist').innerText = artist;
+            if (current_artist !== artist) {
+                document.getElementById('artist').innerText = artist;
+                current_artist = artist;
+                if (getTextWidth(current_artist, 'artist') > 280)
+                    document.getElementById('artist').innerHTML = `<marquee>${current_artist}</marquee>`
+            }
             document.getElementById('img').srcset = res['item']['album']['images'][0]['url'];
         });
     }, 10000); // 이전 데이터와 비교 시 곡이 달라지지 않았으면 marquee 유지해야함
+    // dom js에서 token refresh 해야함
 </script>
 
 </html>
