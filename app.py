@@ -60,8 +60,8 @@ def main():
             album_art = response['item']['album']['images'][0]['url']
             return render_template('index.html', title=title, artist=artist, album_art=album_art)
         except:
-            return 'check token or play music'
-    return '<h1>spotify</h1><a href="/login">login</a>'
+            return render_template('error.html')
+    return render_template('login.html')
 
 @app.route('/login')
 def authorize():

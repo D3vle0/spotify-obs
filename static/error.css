@@ -1,0 +1,8 @@
+@font-face {
+    font-family: 'AppleSDGothicNeoL';
+    src: url("AppleSDGothicNeoL.ttf");
+}
+
+p {
+    font: 24px 'AppleSDGothicNeoL';
+}
